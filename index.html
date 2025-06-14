@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rundown Kegiatan</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Rundown Kegiatan</h1>
+  <form onsubmit="event.preventDefault(); tambahKegiatan()">
+    <div class="form-group">
+      <label for="judulKegiatan">Judul Kegiatan</label>
+      <input type="text" id="judulKegiatan">
+    </div>
+    <div class="form-group">
+      <label for="tanggal">Tanggal</label>
+      <input type="date" id="tanggal" onchange="isiJamOtomatis()">
+    </div>
+    <div class="form-group">
+      <label for="jam">Jam Mulai</label>
+      <input type="time" id="jam">
+    </div>
+    <div class="form-group">
+      <label for="durasi">Durasi (menit)</label>
+      <input type="number" id="durasi">
+    </div>
+    <div class="form-group">
+      <label for="namaKegiatan">Nama Kegiatan</label>
+      <input type="text" id="namaKegiatan">
+    </div>
+    <div class="form-group">
+      <label for="penanggungJawab">Penanggung Jawab</label>
+      <input type="text" id="penanggungJawab">
+    </div>
+    <button type="submit">Tambah Kegiatan</button>
+    <div class="form-actions">
+      <button type="button" onclick="cetakPDF()">Cetak PDF</button>
+      <button type="button" onclick="cetakGambar()">Cetak Gambar</button>
+    </div>
+  </form>
+  <div id="preview"></div>
+
+  <!-- Libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Script -->
+  <script src="script.js"></script>
+</body>
+</html>
