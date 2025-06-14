@@ -17,14 +17,15 @@ function tambahKegiatan() {
     return;
     document.getElementById("jam").value = lastEndTime.toTimeString().substring(0, 5); // Auto-isi jam selanjutnya
   }
-  
-  }
+  if (!jam && lastEndTime) {    
+  jam = lastEndTime.toTimeString().substring(0, 5);    
+}
 
-  const start = new Date(`${tanggal}T${jam}`);
-  const end = new Date(start.getTime() + durasi * 60000);
-  lastEndTime = end;
+const start = new Date(`${tanggal}T${jam}`);    
+const end = new Date(start.getTime() + durasi * 60000);    
+lastEndTime = end;
 
-  const waktu = `${jam} - ${end.getHours().toString().padStart(2, '0')}:${end.getMinutes().toString().padStart(2, '0')}`;
+const waktu = `${jam} - ${end.getHours().toString().padStart(2, '0')}:${end.getMinutes().toString().padStart(2, '0')}`;
   const urutanInput = urutanEdit !== null ? urutanEdit : (data.length > 0 ? Math.max(...data.map(d => d.urutanInput || 0)) + 1 : 1);
 
   data.push({ judul, tanggal, jam, durasi, nama, pj, waktu, start, end, urutanInput });
