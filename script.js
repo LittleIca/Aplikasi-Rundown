@@ -15,11 +15,9 @@ function tambahKegiatan() {
   if (!tanggal || !durasi || !nama || !pj || (!jam && !lastEndTime)) {
     alert("Lengkapi semua kolom yang dibutuhkan.");
     return;
+    document.getElementById("jam").value = lastEndTime.toTimeString().substring(0, 5); // Auto-isi jam selanjutnya
   }
-
-  if (!jam && lastEndTime) {
-    jam = lastEndTime.toTimeString().substring(0, 5);
-    document.getElementById("jam").value = jam;
+  
   }
 
   const start = new Date(`${tanggal}T${jam}`);
