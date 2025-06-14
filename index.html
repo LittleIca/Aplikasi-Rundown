@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rundown Kegiatan</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0faff;
+      padding: 25px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #0077b6;
+      margin-bottom: 30px;
+    }
+
+    form {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      max-width: 700px;
+      margin: 0 auto 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    label {
+      font-weight: 500;
+      margin-bottom: 5px;
+      display: block;
+      color: #023e8a;
+    }
+
+    input, button {
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    input:focus {
+      border-color: #00b4d8;
+      outline: none;
+      box-shadow: 0 0 0 2px #caf0f8;
+    }
+
+    button {
+      background: #00b4d8;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #0096c7;
+    }
+
+    #preview {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      padding: 25px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    table {
+      margin: 0 auto 20px;
+      border-collapse: collapse;
+      width: 90%;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #caf0f8;
+    }
+
+    .tanggal-label {
+      font-weight: bold;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      background: #90e0ef;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .judul-kegiatan {
+      text-align: center;
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #03045e;
+    }
+
+    .footer-note {
+      font-size: 12px;
+      font-style: italic;
+      color: #666;
+      margin-top: -10px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .action-buttons {
+      text-align: center;
+    }
+
+    .action-buttons button {
+      margin: 5px;
+      background: #ffb703;
+      color: black;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .action-buttons button:last-child {
+      background: #ef233c;
+      color: white;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 600px) {
+      form, #preview {
+        padding: 15px;
+      }
+
+      table, th, td {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Rundown Kegiatan</h1>
+  <form onsubmit="event.preventDefault(); tambahKegiatan()">
+    <div class="form-group">
+      <label for="judulKegiatan">Judul Kegiatan</label>
+      <input type="text" id="judulKegiatan">
+    </div>
+    <div class="form-group">
+      <label for="tanggal">Tanggal</label>
+      <input type="date" id="tanggal">
+    </div>
+    <div class="form-group">
+      <label for="jam">Jam Mulai</label>
+      <input type="time" id="jam">
+    </div>
+    <div class="form-group">
+      <label for="durasi">Durasi (menit)</label>
+      <input type="number" id="durasi">
+    </div>
+    <div class="form-group">
+      <label for="namaKegiatan">Nama Kegiatan</label>
+      <input type="text" id="namaKegiatan">
+    </div>
+    <div class="form-group">
+      <label for="penanggungJawab">Penanggung Jawab</label>
+      <input type="text" id="penanggungJawab">
+    </div>
+    <button type="submit">Tambah Kegiatan</button>
+    <div class="form-actions">
+      <button type="button" onclick="cetakPDF()">Cetak PDF</button>
+      <button type="button" onclick="cetakGambar()">Cetak Gambar</button>
+    </div>
+  </form>
+
+  <div id="preview"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    let data = [];
+    let lastEndTime = null;
+    let judulTampil = true;
+    let urutanEdit = null;
+    let aksiTampilIndex = null;
+
+    function tambahKegiatan() {
+      const judul = document.getElementById("judulKegiatan").value;
+      const tanggal = document.getElementById("tanggal").value;
+      let jam = document.getElementById("jam").value;
+      const durasi = parseInt(document.getElementById("durasi").value);
+      const nama = document.getElementById("namaKegiatan").value;
+      const pj = document.getElementById("penanggungJawab").value;
+
+      if (!tanggal || !durasi || !nama || !pj || (!jam && !lastEndTime)) {
+        alert("Lengkapi semua kolom yang dibutuhkan.");
+        return;
+      }
+
+      if (!jam && lastEndTime) {
+        jam = lastEndTime.toTimeString().substring(0, 5);
+        document.getElementById("jam").value = jam;
+      }
+
+      const start = new Date(`${tanggal}T${jam}`);
+      const end = new Date(start.getTime() + durasi * 60000);
+      lastEndTime = end;
+
+      const waktu = `${jam} - ${end.getHours().toString().padStart(2, '0')}:${end.getMinutes().toString().padStart(2, '0')}`;
+      const urutanInput = urutanEdit !== null ? urutanEdit : (data.length > 0 ? Math.max(...data.map(d => d.urutanInput || 0)) + 1 : 1);
+
+      data.push({ judul, tanggal, jam, durasi, nama, pj, waktu, start, end, urutanInput });
+
+      if (judulTampil) judulTampil = false;
+
+      data.sort((a, b) => a.urutanInput - b.urutanInput);
+      render();
+
+      urutanEdit = null;
+      document.getElementById("namaKegiatan").value = "";
+      document.getElementById("penanggungJawab").value = "";
+      document.getElementById("durasi").value = "";
+    }
+
+    function formatDate(tgl) {
+      const date = new Date(tgl);
+      return date.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    function nextDate(tgl) {
+      const date = new Date(tgl);
+      date.setDate(date.getDate() + 1);
+      return date.toISOString().split("T")[0];
+    }
+
+    function render() {
+      const preview = document.getElementById("preview");
+      preview.innerHTML = "";
+
+      if (!judulTampil && data.length > 0) {
+        const h2 = document.createElement("h2");
+        h2.className = "judul-kegiatan";
+        h2.textContent = document.getElementById("judulKegiatan").value;
+        preview.appendChild(h2);
+      }
+
+      const grouped = {};
+      data.forEach((item) => {
+        const isOverMidnight = item.end.getDate() !== item.start.getDate();
+        const groupDate = isOverMidnight ? nextDate(item.tanggal) : item.tanggal;
+        if (!grouped[groupDate]) grouped[groupDate] = [];
+        grouped[groupDate].push(item);
+      });
+
+      Object.keys(grouped).sort().forEach((tgl) => {
+        const label = document.createElement("div");
+        label.className = "tanggal-label";
+        label.textContent = formatDate(tgl);
+        preview.appendChild(label);
+
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        thead.innerHTML = "<tr><th>No</th><th>Waktu</th><th>Nama Kegiatan</th><th>Penanggung Jawab</th></tr>";
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        grouped[tgl].forEach((item, i) => {
+          const index = data.indexOf(item);
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${i + 1}</td>
+            <td>${item.waktu}</td>
+            <td class="nama-kegiatan-cell" style="cursor:pointer" data-index="${index}">${item.nama}</td>
+            <td>${item.pj}</td>
+          `;
+          tbody.appendChild(tr);
+
+          if (aksiTampilIndex === index) {
+            const aksiRow = document.createElement("tr");
+            aksiRow.innerHTML = `
+              <td colspan="4" class="action-buttons">
+                <button onclick="editItem(${index})">Edit</button>
+                <button onclick="hapusItem(${index})">Hapus</button>
+              </td>
+            `;
+            tbody.appendChild(aksiRow);
+          }
+        });
+
+        table.appendChild(tbody);
+        preview.appendChild(table);
+
+        const footer = document.createElement("div");
+        footer.className = "footer-note";
+        footer.textContent = "By Zaenis";
+        preview.appendChild(footer);
+      });
+
+      setTimeout(() => {
+        document.querySelectorAll(".nama-kegiatan-cell").forEach(cell => {
+          cell.addEventListener("click", () => {
+            const index = parseInt(cell.getAttribute("data-index"));
+            aksiTampilIndex = aksiTampilIndex === index ? null : index;
+            render();
+          });
+        });
+      }, 0);
+    }
+
+    function editItem(index) {
+      const item = data[index];
+      urutanEdit = item.urutanInput;
+      document.getElementById("jam").value = "";
+      document.getElementById("durasi").value = item.durasi;
+      document.getElementById("namaKegiatan").value = item.nama;
+      document.getElementById("penanggungJawab").value = item.pj;
+      document.getElementById("tanggal").value = item.tanggal;
+      document.getElementById("judulKegiatan").value = item.judul;
+      data.splice(index, 1);
+      aksiTampilIndex = null;
+      render();
+    }
+
+    function hapusItem(index) {
+      if (confirm("Yakin ingin menghapus kegiatan ini?")) {
+        data.splice(index, 1);
+        aksiTampilIndex = null;
+        render();
+      }
+    }
+
+    function cetakPDF() {
+      html2canvas(document.getElementById("preview"), { scale: 2 }).then(canvas => {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF("p", "mm", "a4");
+        const imgData = canvas.toDataURL("image/png");
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
+        const imgWidth = canvas.width * ratio;
+        const imgHeight = canvas.height * ratio;
+        const x = (pageWidth - imgWidth) / 2;
+        const y = 10;
+        pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+        pdf.save("rundown.pdf");
+      });
+    }
+
+    function cetakGambar() {
+      html2canvas(document.getElementById("preview"), { scale: 2 }).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "rundown.png";
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+  </script>
+</body>
+</html>
