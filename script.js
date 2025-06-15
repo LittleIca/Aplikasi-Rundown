@@ -182,3 +182,25 @@ function cetakGambar() {
     link.click();
   });
 }
+
+function cetakExcel() {
+  if (data.length === 0) {
+    alert("Tidak ada data untuk dicetak.");
+    return;
+  }
+
+  const exportData = data.map((item, i) => ({
+    No: i + 1,
+    Tanggal: item.tanggal,
+    "Jam Mulai": item.jam,
+    "Jam Selesai": item.waktu.split(" - ")[1],
+    "Nama Kegiatan": item.nama,
+    "Penanggung Jawab": item.pj
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(exportData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Rundown");
+
+  XLSX.writeFile(workbook, "rundown_kegiatan.xlsx");
+}
